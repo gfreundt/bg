@@ -5,11 +5,16 @@ class Grid:
         self.size = grid_size
         self.blank_grid = [[0 for i in range(grid_size)] for j in range(grid_size)]
         self.grid = self.init_grid(copy.deepcopy(self.blank_grid), grid_size)
-        self.max = 0
+        self.nummax = 0
+        self.xmax = []
+        self.ymax = []
         
     def init_grid(self, grid, n):
         iloc = n // 2
-        grid[iloc - 1][iloc-1], grid[iloc + 1][iloc + 1], grid[iloc + 3][iloc - 3] = 1, 1, 1
+        # 2
+        grid[iloc - 1][iloc-1], grid[iloc + 1][iloc + 1] = 1, 1
+        # 3
+        #grid[iloc - 1][iloc-1], grid[iloc + 1][iloc + 1], grid[iloc + 2][iloc - 3] = 1, 1, 1
         gprint("Starting Position", grid)
         return grid
 
@@ -23,7 +28,6 @@ def gprint(title, grid):
 
 def reduce_grid(grid):
     igrid = [[grid[j][i] for j,_ in enumerate(grid)] for i,_ in enumerate(grid)]
-
     c = []
     for g in (grid, igrid):
         for line, line_data in enumerate(g):
@@ -36,9 +40,8 @@ def reduce_grid(grid):
                 break
         c.append((lower_limit, upper_limit))
 
-    return [[grid[c[0][0]+i][c[1][0]+j] for j,_ in enumerate(grid[c[1][0]:c[1][1]])] for i,_ in enumerate(grid[c[0][0]:c[0][1]])]
-
-
+    new_grid = [[grid[c[0][0]+i][c[1][0]+j] for j,_ in enumerate(grid[c[1][0]:c[1][1]])] for i,_ in enumerate(grid[c[0][0]:c[0][1]])]
+    return new_grid, len(new_grid), len(new_grid[0])
 
 def valid_squares(grid, next):
     G.ogrid = copy.deepcopy(G.blank_grid)
@@ -57,19 +60,19 @@ def valid_squares(grid, next):
     return result
 
 
-def main2(grid, n, depth):
+def solve(grid, n):
     for opt in valid_squares(grid, n):
         grid[opt[1]][opt[0]] = n
-        main2(grid, n+1, depth+1)
-        if n > G.max:
-            G.max = int(n)
+        solve(grid, n+1)
+        if n > G.nummax:
+            G.nummax = int(n)
             G.final_grid = copy.deepcopy(grid)
+        _, xmax, ymax = reduce_grid(grid)
+        G.xmax.append(xmax)
+        G.ymax.append(ymax)
         grid[opt[1]][opt[0]] = 0
 
-G = Grid(21)
-main2(G.grid, 2, 0)
-#gprint("Best Result", G.final_grid)
-print(f"\nMaximum: {G.max}")
-
-gprint("Reduced", reduce_grid(G.final_grid))
-#gprint("Best Result", G.final_grid)
+G = Grid(11)
+solve(G.grid, 2)
+print(f"\nMax N: {G.nummax} -- Max Grid Size: {max(G.xmax)},{max(G.ymax)}")
+gprint("Best Result", reduce_grid(G.final_grid)[0])
